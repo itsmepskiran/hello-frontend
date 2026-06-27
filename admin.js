@@ -1,22 +1,27 @@
-const BACKEND = 'http://localhost:2025'
+// Local dev: wrangler dev runs on 8787.
+// After deploying, change this to your workers.dev URL:
+//   https://hellobmg-api.<your-subdomain>.workers.dev
+const BACKEND = localStorage.getItem('hbmg_backend') || 'http://localhost:8787'
 
 // ── Token helpers ──────────────────────────────────────────────────────────────
 function getToken()  { return localStorage.getItem('hbmg_token') || '' }
 function setToken(t) { localStorage.setItem('hbmg_token', t) }
-function clearToken(){ localStorage.removeItem('hbmg_token') }
+function clearToken(){ localStorage.removeItem('hbmg_token'); localStorage.removeItem('hbmg_email') }
 
 function authHeaders(extra = {}) {
   return { 'Authorization': `Bearer ${getToken()}`, ...extra }
 }
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
-const els = {
-  email:          document.getElementById('email'),
-  password:       document.getElementById('password'),
-  signInBtn:      document.getElementById('signInBtn'),
-  signOutBtn:     document.getElementById('signOutBtn'),
-  authStatus:     document.getElementById('authStatus'),
+const modal      = document.getElementById('loginModal')
+const mainPage   = document.getElementById('mainPage')
+const loginForm  = document.getElementById('loginForm')
+const loginError = document.getElementById('loginError')
+const signInBtn  = document.getElementById('signInBtn')
+const signOutBtn = document.getElementById('signOutBtn')
+const headerEmail= document.getElementById('headerEmail')
 
+const els = {
   form:           document.getElementById('productForm'),
   status:         document.getElementById('status'),
   title:          document.getElementById('title'),
@@ -40,7 +45,6 @@ const els = {
   warranty:       document.getElementById('warranty'),
   specsJson:      document.getElementById('specsJson'),
   imageFile:      document.getElementById('imageFile'),
-
   bulkForm:       document.getElementById('bulkForm'),
   xlsxFile:       document.getElementById('xlsxFile'),
   uploadXlsxBtn:  document.getElementById('uploadXlsxBtn'),
@@ -48,53 +52,42 @@ const els = {
   sampleBtn:      document.getElementById('sampleBtn'),
 }
 
+// ── Modal show / hide ──────────────────────────────────────────────────────────
+function showModal() {
+  modal.classList.remove('hidden')
+  mainPage.classList.remove('visible')
+  loginError.textContent = ''
+  document.getElementById('email').value    = ''
+  document.getElementById('password').value = ''
+  document.getElementById('email').focus()
+}
+
+function showMainPage(email) {
+  modal.classList.add('hidden')
+  mainPage.classList.add('visible')
+  headerEmail.textContent = email
+}
+
 // ── Status helpers ─────────────────────────────────────────────────────────────
-function setStatus(msg, type = 'info') {
+function setStatus(msg, type = '') {
   els.status.textContent = msg
   els.status.className   = 'status ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '')
 }
-function setBulkStatus(msg, type = 'info') {
+function setBulkStatus(msg, type = '') {
   els.bulkStatus.textContent = msg
   els.bulkStatus.className   = 'status ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '')
 }
 
-// ── Auth UI state ──────────────────────────────────────────────────────────────
-function setLoggedIn(email) {
-  els.authStatus.textContent = `Signed in as ${email}`
-  els.authStatus.className   = 'auth-status signed-in'
-  els.signInBtn.disabled     = true
-  els.signOutBtn.disabled    = false
-  els.email.disabled         = true
-  els.password.disabled      = true
-  setFormEnabled(true)
-}
+// ── Auth ───────────────────────────────────────────────────────────────────────
+async function signIn(e) {
+  e.preventDefault()
+  const email    = document.getElementById('email').value.trim()
+  const password = document.getElementById('password').value
+  if (!email || !password) { loginError.textContent = 'Enter email and password'; return }
 
-function setLoggedOut() {
-  els.authStatus.textContent = 'Signed out — please sign in to make changes'
-  els.authStatus.className   = 'auth-status signed-out'
-  els.signInBtn.disabled     = false
-  els.signOutBtn.disabled    = true
-  els.email.disabled         = false
-  els.password.disabled      = false
-  setFormEnabled(false)
-}
-
-function setFormEnabled(enabled) {
-  els.form.querySelectorAll('input,select,textarea,button').forEach(el => {
-    if (el.type === 'reset') return
-    el.disabled = !enabled
-  })
-  if (els.uploadXlsxBtn) els.uploadXlsxBtn.disabled = !enabled
-}
-
-// ── Auth actions ───────────────────────────────────────────────────────────────
-async function signIn() {
-  const email    = (els.email.value || '').trim()
-  const password = els.password.value || ''
-  if (!email || !password) { alert('Enter email and password'); return }
-
-  els.signInBtn.textContent = 'Signing in…'
-  els.signInBtn.disabled    = true
+  signInBtn.textContent = 'Signing in…'
+  signInBtn.disabled    = true
+  loginError.textContent = ''
 
   try {
     const res = await fetch(`${BACKEND}/admin/login`, {
@@ -109,14 +102,13 @@ async function signIn() {
     const data = await res.json()
     setToken(data.token)
     localStorage.setItem('hbmg_email', data.email)
-    setLoggedIn(data.email)
-    els.password.value = ''
+    showMainPage(data.email)
     await loadBrandsCategories()
-  } catch (e) {
-    alert('Sign-in failed: ' + e.message)
+  } catch (err) {
+    loginError.textContent = err.message
   } finally {
-    els.signInBtn.textContent = 'Sign In'
-    els.signInBtn.disabled    = false
+    signInBtn.textContent = 'Sign In'
+    signInBtn.disabled    = false
   }
 }
 
@@ -124,13 +116,11 @@ async function signOut() {
   const token = getToken()
   if (token) {
     fetch(`${BACKEND}/admin/logout`, {
-      method:  'POST',
-      headers: authHeaders(),
+      method: 'POST', headers: authHeaders(),
     }).catch(() => {})
   }
   clearToken()
-  localStorage.removeItem('hbmg_email')
-  setLoggedOut()
+  showModal()
 }
 
 // ── Brands / Categories ────────────────────────────────────────────────────────
@@ -141,14 +131,14 @@ async function loadBrandsCategories() {
       fetch(`${BACKEND}/admin/brands`),
       fetch(`${BACKEND}/admin/categories`),
     ])
-    if (!br.ok || !cr.ok) throw new Error('Failed to load refs')
+    if (!br.ok || !cr.ok) throw new Error('Failed to load brands/categories')
     const brands     = await br.json()
     const categories = await cr.json()
     els.brandSelect.innerHTML    = (brands     || []).map(b => `<option value="${b.id}">${b.name}</option>`).join('')
     els.categorySelect.innerHTML = (categories || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('')
     setStatus('')
   } catch (e) {
-    setStatus('Failed to load brands/categories — is the backend running on port 2025?', 'error')
+    setStatus('Could not load brands/categories — is the backend running on port 2025?', 'error')
   }
 }
 
@@ -156,17 +146,16 @@ async function addBrand() {
   const name = (els.brandNew.value || '').trim()
   if (!name) return
   const res = await fetch(`${BACKEND}/admin/brands`, {
-    method:  'POST',
+    method: 'POST',
     headers: authHeaders({ 'Content-Type': 'application/json' }),
-    body:    JSON.stringify({ name }),
+    body: JSON.stringify({ name }),
   })
   if (!res.ok) { setStatus('Add brand failed', 'error'); return }
   const data = await res.json()
   const o = document.createElement('option')
   o.value = data.id; o.textContent = data.name
-  els.brandSelect.appendChild(o)
-  els.brandSelect.value = data.id
-  els.brandNew.value    = ''
+  els.brandSelect.appendChild(o); els.brandSelect.value = data.id
+  els.brandNew.value = ''
   setStatus('Brand added', 'success')
 }
 
@@ -174,17 +163,16 @@ async function addCategory() {
   const name = (els.categoryNew.value || '').trim()
   if (!name) return
   const res = await fetch(`${BACKEND}/admin/categories`, {
-    method:  'POST',
+    method: 'POST',
     headers: authHeaders({ 'Content-Type': 'application/json' }),
-    body:    JSON.stringify({ name }),
+    body: JSON.stringify({ name }),
   })
   if (!res.ok) { setStatus('Add category failed', 'error'); return }
   const data = await res.json()
   const o = document.createElement('option')
   o.value = data.id; o.textContent = data.name
-  els.categorySelect.appendChild(o)
-  els.categorySelect.value = data.id
-  els.categoryNew.value    = ''
+  els.categorySelect.appendChild(o); els.categorySelect.value = data.id
+  els.categoryNew.value = ''
   setStatus('Category added', 'success')
 }
 
@@ -208,19 +196,6 @@ function buildSpecs() {
   return specs
 }
 
-async function uploadPrimaryImage(productId, file) {
-  const fd = new FormData()
-  fd.append('file', file)
-  fd.append('is_primary', 'true')
-  const res = await fetch(`${BACKEND}/admin/products/${productId}/images`, {
-    method:  'POST',
-    headers: authHeaders(),
-    body:    fd,
-  })
-  if (!res.ok) throw new Error('Image upload failed')
-  return (await res.json()).public_url
-}
-
 async function handleSubmit(e) {
   e.preventDefault()
   try {
@@ -237,23 +212,27 @@ async function handleSubmit(e) {
       stock:        els.stock.value  ? Number(els.stock.value)  : 0,
       stock_status: els.stockStatus.value || 'in_stock',
       popularity:   0,
-      specs,
-      tags,
-      is_active: true,
+      specs, tags, is_active: true,
     }
     const res = await fetch(`${BACKEND}/admin/products`, {
-      method:  'POST',
+      method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body:    JSON.stringify(payload),
+      body: JSON.stringify(payload),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
+      if (res.status === 401) { clearToken(); showModal(); return }
       throw new Error(err.detail || 'Product save failed')
     }
     const product = await res.json()
     const file = els.imageFile.files[0]
     if (!file) throw new Error('Please select a primary image')
-    await uploadPrimaryImage(product.id, file)
+    const fd = new FormData()
+    fd.append('file', file); fd.append('is_primary', 'true')
+    const imgRes = await fetch(`${BACKEND}/admin/products/${product.id}/images`, {
+      method: 'POST', headers: authHeaders(), body: fd,
+    })
+    if (!imgRes.ok) throw new Error('Image upload failed')
     setStatus('Product saved successfully!', 'success')
     els.form.reset()
   } catch (err) {
@@ -262,28 +241,45 @@ async function handleSubmit(e) {
   }
 }
 
-// ── Bulk XLSX ──────────────────────────────────────────────────────────────────
+// ── Bulk upload: parse XLSX/CSV in browser, send JSON to Worker ────────────────
 async function handleBulkUpload() {
   const file = els.xlsxFile.files?.[0]
-  if (!file) { setBulkStatus('Please select an .xlsx file', 'error'); return }
-  setBulkStatus('Uploading…')
+  if (!file) { setBulkStatus('Please select a file', 'error'); return }
+
+  setBulkStatus('Parsing file…')
   try {
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch(`${BACKEND}/admin/products/bulk-xlsx`, {
+    // SheetJS loaded via CDN script tag (window.XLSX)
+    const XLSX = window.XLSX
+    if (!XLSX) throw new Error('SheetJS not loaded — check your internet connection')
+
+    const data = await file.arrayBuffer()
+    const wb   = XLSX.read(data, { type: 'array' })
+    const ws   = wb.Sheets[wb.SheetNames[0]]
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+
+    if (!rows.length) { setBulkStatus('File is empty or has no data rows', 'error'); return }
+
+    const required = ['title', 'brand', 'category', 'price']
+    const missing  = required.filter(col => !(col in rows[0]))
+    if (missing.length) {
+      setBulkStatus(`Missing required column(s): ${missing.join(', ')}`, 'error')
+      return
+    }
+
+    setBulkStatus(`Uploading ${rows.length} product(s)…`)
+
+    const res = await fetch(`${BACKEND}/admin/products/bulk-json`, {
       method:  'POST',
-      headers: authHeaders(),
-      body:    fd,
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body:    JSON.stringify({ products: rows }),
     })
     if (!res.ok) {
+      if (res.status === 401) { clearToken(); showModal(); return }
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.detail || await res.text())
+      throw new Error(err.detail || 'Upload failed')
     }
-    const data = await res.json()
-    setBulkStatus(
-      `Done — Created: ${data.created}, Updated: ${data.updated}, Images: ${data.images_uploaded}`,
-      'success'
-    )
+    const result = await res.json()
+    setBulkStatus(`Done — Created: ${result.created}, Updated: ${result.updated}`, 'success')
     els.bulkForm.reset()
   } catch (e) {
     console.error(e)
@@ -291,49 +287,43 @@ async function handleBulkUpload() {
   }
 }
 
-function downloadSampleXlsx() {
-  const headers = [
-    'title','brand','category','price','mrp','rating','stock',
-    'tags','image_url','specs_json','storage','ram','display',
-    'battery','camera','warranty','stock_status'
-  ]
-  const sample = [
-    'iPhone 13 (Refurbished)','Apple','Smartphones','45999','69999','4.7','10',
-    'featured,sale','','','128 GB','4 GB','6.1" OLED','3227 mAh','12MP + 12MP','12 months','in_stock'
-  ]
+function downloadSampleCsv() {
+  const headers = ['title','brand','category','price','mrp','rating','stock','tags','image_url','specs_json','storage','ram','display','battery','camera','warranty','stock_status']
+  const sample  = ['iPhone 13 (Refurbished)','Apple','Smartphones','45999','69999','4.7','10','featured,sale','','','128 GB','4 GB','6.1" OLED','3227 mAh','12MP + 12MP','12 months','in_stock']
   const csv = [headers.join(','), sample.map(v => `"${v}"`).join(',')].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = 'helloBMG_products_sample.csv'
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    download: 'helloBMG_products_sample.csv',
+  })
   a.click()
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 function bind() {
-  els.signInBtn.addEventListener('click', signIn)
-  els.signOutBtn.addEventListener('click', signOut)
+  loginForm.addEventListener('submit', signIn)
+  signOutBtn.addEventListener('click', signOut)
   els.addBrandBtn.addEventListener('click', addBrand)
   els.addCategoryBtn.addEventListener('click', addCategory)
   els.form.addEventListener('submit', handleSubmit)
   els.uploadXlsxBtn?.addEventListener('click', handleBulkUpload)
-  els.sampleBtn?.addEventListener('click', downloadSampleXlsx)
+  els.sampleBtn?.addEventListener('click', downloadSampleCsv)
 }
 
 async function init() {
   bind()
   const token = getToken()
   if (token) {
-    // Validate stored token
+    // Validate stored token silently
     const res = await fetch(`${BACKEND}/admin/brands`, { headers: authHeaders() })
     if (res.ok) {
-      setLoggedIn(localStorage.getItem('hbmg_email') || 'admin')
+      const email = localStorage.getItem('hbmg_email') || 'admin'
+      showMainPage(email)
       await loadBrandsCategories()
       return
     }
     clearToken()
   }
-  setLoggedOut()
+  showModal()
 }
 
 init()

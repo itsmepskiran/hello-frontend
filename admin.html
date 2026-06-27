@@ -3,236 +3,353 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HelloBMG Admin — Add Product</title>
+  <title>HelloBMG Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --border: #e5e7eb;
-      --muted:  #6b7280;
-      --primary:#0ea5e9;
-      --primary-dark:#0284c7;
-      --success:#16a34a;
-      --error:  #dc2626;
-      --bg:     #f8fafc;
+      --border:       #e5e7eb;
+      --muted:        #6b7280;
+      --primary:      #0ea5e9;
+      --primary-dark: #0284c7;
+      --success:      #16a34a;
+      --error:        #dc2626;
+      --bg:           #f1f5f9;
     }
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); font-family: Inter, system-ui, -apple-system, sans-serif; color: #0b1220; font-size: 14px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: #0f172a;
+      background: var(--bg);
+      min-height: 100vh;
+    }
 
-    /* ── Header ── */
-    .header { background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 16px; height: 56px; position: sticky; top: 0; z-index: 10; }
-    .header h1 { margin: 0; font-size: 18px; font-weight: 700; color: var(--primary); flex: 1; }
+    /* ─────────────────── LOGIN MODAL ─────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .25s;
+    }
+    .modal-overlay.hidden { opacity: 0; pointer-events: none; }
 
-    /* ── Layout ── */
+    .modal-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 40px 36px 36px;
+      width: min(420px, 92vw);
+      box-shadow: 0 24px 60px rgba(0,0,0,.18);
+      animation: slideUp .3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .modal-brand h2 {
+      font-size: 22px; font-weight: 700; color: var(--primary);
+      letter-spacing: -.3px;
+    }
+    .modal-brand p {
+      font-size: 13px; color: var(--muted); margin-top: 4px;
+    }
+
+    .modal-form { display: flex; flex-direction: column; gap: 16px; }
+    .modal-form label {
+      font-size: 12px; font-weight: 600; color: #374151;
+      text-transform: uppercase; letter-spacing: .4px;
+      display: block; margin-bottom: 5px;
+    }
+    .modal-form input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 14px; font-family: inherit; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .modal-form input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px #e0f2fe;
+    }
+    .modal-submit {
+      width: 100%; padding: 12px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: background .15s;
+      margin-top: 4px;
+    }
+    .modal-submit:hover:not(:disabled) { background: var(--primary-dark); }
+    .modal-submit:disabled { opacity: .55; cursor: not-allowed; }
+
+    .modal-error {
+      font-size: 13px; color: var(--error); font-weight: 500;
+      text-align: center; min-height: 18px;
+    }
+
+    /* ─────────────────── MAIN PAGE ─────────────────── */
+    #mainPage { display: none; }
+    #mainPage.visible { display: block; }
+
+    .header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 56px;
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .header-brand { font-size: 17px; font-weight: 700; color: var(--primary); flex: 1; }
+    .header-user  { font-size: 13px; color: var(--muted); }
+    .btn-signout  {
+      padding: 7px 14px; border-radius: 8px;
+      border: 1px solid var(--border); background: #fff;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-signout:hover { background: #fef2f2; color: var(--error); border-color: #fca5a5; }
+
     .container { width: min(1020px, 96%); margin: 28px auto 60px; display: flex; flex-direction: column; gap: 20px; }
 
-    /* ── Card ── */
+    /* ─────────────────── CARDS ─────────────────── */
     .card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
-    .card-title { font-size: 15px; font-weight: 700; margin: 0 0 18px; display: flex; align-items: center; gap: 8px; }
-    .card-title span.icon { font-size: 18px; }
-
-    /* ── Auth card ── */
-    .auth-grid { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end; }
-    .auth-status { margin-top: 10px; font-size: 13px; font-weight: 500; padding: 6px 10px; border-radius: 8px; display: inline-block; }
-    .auth-status.signed-in  { background: #dcfce7; color: #15803d; }
-    .auth-status.signed-out { background: #fef9c3; color: #92400e; }
-
-    /* ── Hint box ── */
-    .hint { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #0369a1; margin-top: 10px; }
-    .hint code { background: #e0f2fe; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
-
-    /* ── Product form ── */
-    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-    .full { grid-column: 1 / -1; }
-    .specs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-
-    /* ── Form elements ── */
-    label { font-size: 12px; color: #374151; font-weight: 600; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
-    input[type=text], input[type=number], input[type=email], input[type=password], input[type=file], textarea, select {
-      width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; outline: none;
-      font-size: 14px; font-family: inherit; background: #fff; transition: border-color .15s;
+    .card-title {
+      font-size: 15px; font-weight: 700; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
     }
-    input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px #e0f2fe; }
+
+    /* ─────────────────── FORM ELEMENTS ─────────────────── */
+    label {
+      font-size: 12px; color: #374151; font-weight: 600;
+      display: block; margin-bottom: 5px;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    input[type=text], input[type=number], input[type=file],
+    textarea, select {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      font-size: 14px; font-family: inherit; outline: none;
+      background: #fff; transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px #e0f2fe;
+    }
     textarea { min-height: 80px; resize: vertical; }
     input[type=file] { padding: 7px 10px; cursor: pointer; }
 
-    /* ── Inline brand/category row ── */
+    /* ─────────────────── PRODUCT FORM GRID ─────────────────── */
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+    .full { grid-column: 1 / -1; }
+    .specs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 4px; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted);
+      margin: 20px 0 12px;
+    }
+
     .ref-row { display: flex; gap: 8px; margin-top: 8px; }
     .ref-row input { flex: 1; }
 
-    /* ── Buttons ── */
-    .btn { padding: 9px 16px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: 600; font-size: 13px; font-family: inherit; transition: background .15s, color .15s; white-space: nowrap; }
-    .btn:hover { background: #f1f5f9; }
+    /* ─────────────────── BUTTONS ─────────────────── */
+    .btn {
+      padding: 9px 16px; border-radius: 9px;
+      border: 1px solid var(--border); background: #fff;
+      cursor: pointer; font-weight: 600; font-size: 13px;
+      font-family: inherit; transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { background: #f1f5f9; }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
     .btn-sm { padding: 7px 12px; font-size: 12px; }
-    .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: #fff; }
+    .btn-outline { border-color: var(--primary); color: var(--primary); }
     .btn-outline:hover { background: #f0f9ff; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; }
 
-    /* ── Form actions row ── */
-    .form-actions { display: flex; gap: 10px; margin-top: 6px; }
-
-    /* ── Status ── */
-    .status { margin-top: 10px; font-size: 13px; font-weight: 500; min-height: 20px; }
+    /* ─────────────────── STATUS ─────────────────── */
+    .status { margin-top: 12px; font-size: 13px; font-weight: 500; min-height: 20px; }
     .success { color: var(--success); }
     .error   { color: var(--error); }
 
-    /* ── Section divider ── */
-    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-
-    /* ── Bulk upload ── */
+    /* ─────────────────── BULK UPLOAD ─────────────────── */
     .bulk-grid { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
-    .bulk-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .bulk-note {
+      font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;
+    }
+    .bulk-note code {
+      background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 12px;
+    }
+    .bulk-actions { margin-top: 12px; }
 
     @media (max-width: 640px) {
-      .auth-grid, .product-grid, .specs-grid, .bulk-grid { grid-template-columns: 1fr; }
+      .product-grid, .specs-grid, .bulk-grid { grid-template-columns: 1fr; }
       .full { grid-column: 1; }
+      .modal-card { padding: 32px 24px 28px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>HelloBMG Admin</h1>
+  <!-- ═══════════════════ LOGIN MODAL ═══════════════════ -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-brand">
+        <h2>HelloBMG Admin</h2>
+        <p>Sign in to manage products</p>
+      </div>
+      <form id="loginForm" class="modal-form" novalidate>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="admin@hellobmg.com" autocomplete="username" required>
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div id="loginError" class="modal-error"></div>
+        <button id="signInBtn" type="submit" class="modal-submit">Sign In</button>
+      </form>
+    </div>
   </div>
 
-  <div class="container">
+  <!-- ═══════════════════ MAIN PAGE ═══════════════════ -->
+  <div id="mainPage">
 
-    <!-- ── Sign In ── -->
-    <div class="card">
-      <p class="card-title"><span class="icon">🔐</span> Staff Sign In</p>
-      <div class="auth-grid">
-        <div><label for="email">Email</label><input id="email" type="email" placeholder="admin@hellobmg.com" autocomplete="username"></div>
-        <div><label for="password">Password</label><input id="password" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-        <div style="padding-top:20px"><button id="signInBtn" class="btn btn-primary">Sign In</button></div>
-        <div style="padding-top:20px"><button id="signOutBtn" class="btn" disabled>Sign Out</button></div>
-      </div>
-      <div id="authStatus" class="auth-status signed-out">Signed out — please sign in to make changes</div>
-      <div class="hint">
-        Use staff credentials to access this panel.
-        Email: <code>admin@hellobmg.com</code> &nbsp;|&nbsp; Password: <code>HelloBMG@2025</code>
-      </div>
+    <div class="header">
+      <span class="header-brand">HelloBMG Admin</span>
+      <span class="header-user" id="headerEmail"></span>
+      <button id="signOutBtn" class="btn-signout">Sign Out</button>
     </div>
 
-    <!-- ── Add Product ── -->
-    <div class="card">
-      <p class="card-title"><span class="icon">📦</span> Add / Update Product</p>
-      <form id="productForm">
+    <div class="container">
 
-        <div class="product-grid">
-          <div class="full">
-            <label for="title">Product Title *</label>
-            <input id="title" type="text" placeholder="e.g. iPhone 13 (Refurbished, Excellent)" required>
-          </div>
+      <!-- ── Add Product ── -->
+      <div class="card">
+        <p class="card-title">📦 Add / Update Product</p>
+        <form id="productForm">
 
-          <div>
-            <label for="brandSelect">Brand *</label>
-            <select id="brandSelect"></select>
-            <div class="ref-row">
-              <input id="brandNew" type="text" placeholder="New brand name">
-              <button id="addBrandBtn" class="btn btn-sm" type="button">+ Add</button>
+          <div class="product-grid">
+            <div class="full">
+              <label for="title">Product Title *</label>
+              <input id="title" type="text" placeholder="e.g. iPhone 13 (Refurbished, Excellent)" required>
+            </div>
+
+            <div>
+              <label for="brandSelect">Brand *</label>
+              <select id="brandSelect"></select>
+              <div class="ref-row">
+                <input id="brandNew" type="text" placeholder="New brand name">
+                <button id="addBrandBtn" class="btn btn-sm" type="button">+ Add</button>
+              </div>
+            </div>
+
+            <div>
+              <label for="categorySelect">Category *</label>
+              <select id="categorySelect"></select>
+              <div class="ref-row">
+                <input id="categoryNew" type="text" placeholder="New category name">
+                <button id="addCategoryBtn" class="btn btn-sm" type="button">+ Add</button>
+              </div>
+            </div>
+
+            <div>
+              <label for="price">Price (INR) *</label>
+              <input id="price" type="number" min="0" step="1" placeholder="45999" required>
+            </div>
+            <div>
+              <label for="mrp">MRP (INR)</label>
+              <input id="mrp" type="number" min="0" step="1" placeholder="69999">
+            </div>
+            <div>
+              <label for="rating">Rating (0–5)</label>
+              <input id="rating" type="number" min="0" max="5" step="0.1" placeholder="4.7">
+            </div>
+            <div>
+              <label for="stock">Stock Qty</label>
+              <input id="stock" type="number" min="0" step="1" placeholder="10">
+            </div>
+            <div>
+              <label for="stockStatus">Stock Status</label>
+              <select id="stockStatus">
+                <option value="in_stock">In Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+                <option value="preorder">Preorder</option>
+              </select>
+            </div>
+            <div class="full">
+              <label for="tags">Tags (comma separated)</label>
+              <input id="tags" type="text" placeholder="featured, sale, new">
             </div>
           </div>
 
-          <div>
-            <label for="categorySelect">Category *</label>
-            <select id="categorySelect"></select>
-            <div class="ref-row">
-              <input id="categoryNew" type="text" placeholder="New category name">
-              <button id="addCategoryBtn" class="btn btn-sm" type="button">+ Add</button>
+          <p class="section-label">Device Specs</p>
+          <div class="specs-grid">
+            <div><label for="storage">Storage</label><input id="storage" type="text" placeholder="128 GB"></div>
+            <div><label for="ram">RAM</label><input id="ram" type="text" placeholder="4 GB"></div>
+            <div><label for="display">Display</label><input id="display" type="text" placeholder='6.1" OLED'></div>
+            <div><label for="battery">Battery</label><input id="battery" type="text" placeholder="3227 mAh"></div>
+            <div><label for="camera">Camera</label><input id="camera" type="text" placeholder="12MP + 12MP"></div>
+            <div><label for="warranty">Warranty</label><input id="warranty" type="text" placeholder="12 months"></div>
+          </div>
+
+          <div style="margin-top:16px">
+            <label for="specsJson">Advanced Specs (JSON — optional)</label>
+            <textarea id="specsJson" placeholder='{"model":"iPhone 13","color":"Midnight"}'></textarea>
+          </div>
+
+          <div style="margin-top:14px">
+            <label for="imageFile">Primary Image *</label>
+            <input id="imageFile" type="file" accept="image/*" required>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn" type="reset">Reset</button>
+            <button class="btn btn-primary" type="submit">Save Product</button>
+          </div>
+        </form>
+        <div id="status" class="status"></div>
+      </div>
+
+      <!-- ── Bulk Upload ── -->
+      <div class="card">
+        <p class="card-title">📊 Bulk Upload (.xlsx / .csv)</p>
+        <p class="bulk-note">
+          Upload multiple products at once. Required columns:
+          <code>title, brand, category, price</code>. Optional:
+          <code>mrp, rating, stock, tags, image_url, storage, ram, display, battery, camera, warranty, stock_status, specs_json</code>.
+          Existing products matched by title are updated, not duplicated.
+        </p>
+        <form id="bulkForm">
+          <div class="bulk-grid">
+            <div>
+              <label for="xlsxFile">Select File</label>
+              <input id="xlsxFile" type="file" accept=".xlsx,.csv">
+            </div>
+            <div style="padding-top:20px">
+              <button id="uploadXlsxBtn" type="button" class="btn btn-primary">Upload</button>
             </div>
           </div>
-
-          <div>
-            <label for="price">Price (INR) *</label>
-            <input id="price" type="number" min="0" step="1" placeholder="45999" required>
-          </div>
-          <div>
-            <label for="mrp">MRP (INR)</label>
-            <input id="mrp" type="number" min="0" step="1" placeholder="69999">
-          </div>
-          <div>
-            <label for="rating">Rating (0–5)</label>
-            <input id="rating" type="number" min="0" max="5" step="0.1" placeholder="4.7">
-          </div>
-          <div>
-            <label for="stock">Stock Qty</label>
-            <input id="stock" type="number" min="0" step="1" placeholder="10">
-          </div>
-          <div>
-            <label for="stockStatus">Stock Status</label>
-            <select id="stockStatus">
-              <option value="in_stock">In Stock</option>
-              <option value="out_of_stock">Out of Stock</option>
-              <option value="preorder">Preorder</option>
-            </select>
-          </div>
-          <div class="full">
-            <label for="tags">Tags (comma separated)</label>
-            <input id="tags" type="text" placeholder="featured, sale, new">
-          </div>
+        </form>
+        <div class="bulk-actions">
+          <button id="sampleBtn" class="btn btn-outline btn-sm">⬇ Download Sample CSV</button>
         </div>
-
-        <div class="section-label" style="margin-top:20px">Device Specs</div>
-        <div class="specs-grid">
-          <div><label for="storage">Storage</label><input id="storage" type="text" placeholder="128 GB"></div>
-          <div><label for="ram">RAM</label><input id="ram" type="text" placeholder="4 GB"></div>
-          <div><label for="display">Display</label><input id="display" type="text" placeholder='6.1" OLED'></div>
-          <div><label for="battery">Battery</label><input id="battery" type="text" placeholder="3227 mAh"></div>
-          <div><label for="camera">Camera</label><input id="camera" type="text" placeholder="12MP + 12MP"></div>
-          <div><label for="warranty">Warranty</label><input id="warranty" type="text" placeholder="12 months"></div>
-        </div>
-
-        <div style="margin-top:16px">
-          <label for="specsJson">Advanced Specs (JSON — optional, merges with above)</label>
-          <textarea id="specsJson" placeholder='{"model":"iPhone 13","color":"Midnight"}'></textarea>
-        </div>
-
-        <div style="margin-top:14px">
-          <label for="imageFile">Primary Image *</label>
-          <input id="imageFile" type="file" accept="image/*" required>
-        </div>
-
-        <div class="form-actions" style="margin-top:18px">
-          <button class="btn" type="reset">Reset</button>
-          <button class="btn btn-primary" type="submit">Save Product</button>
-        </div>
-      </form>
-      <div id="status" class="status"></div>
-    </div>
-
-    <!-- ── Bulk Upload ── -->
-    <div class="card">
-      <p class="card-title"><span class="icon">📊</span> Bulk Upload (.xlsx / .csv)</p>
-      <p style="color:var(--muted);margin:0 0 14px">
-        Upload multiple products via spreadsheet. Required columns:
-        <code style="background:#f1f5f9;padding:2px 5px;border-radius:4px">title, brand, category, price</code>.
-        Optional: <code style="background:#f1f5f9;padding:2px 5px;border-radius:4px">mrp, rating, stock, tags, image_url, storage, ram, display, battery, camera, warranty, stock_status, specs_json</code>.
-        Existing products (matched by title) are updated instead of duplicated.
-      </p>
-
-      <form id="bulkForm">
-        <div class="bulk-grid">
-          <div>
-            <label for="xlsxFile">Select File</label>
-            <input id="xlsxFile" type="file" accept=".xlsx,.csv">
-          </div>
-          <div style="padding-top:20px">
-            <button id="uploadXlsxBtn" type="button" class="btn btn-primary" disabled>Upload</button>
-          </div>
-        </div>
-      </form>
-
-      <div class="bulk-actions">
-        <button id="sampleBtn" class="btn btn-outline btn-sm">⬇ Download Sample CSV</button>
+        <div id="bulkStatus" class="status"></div>
       </div>
-      <div id="bulkStatus" class="status"></div>
-    </div>
 
+    </div>
   </div>
 
+  <!-- SheetJS: client-side XLSX/CSV parsing for bulk upload -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
 </html>
