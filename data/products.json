@@ -1,0 +1,7 @@
+{
+  "products": [
+    {"id":"p1","title":"iPhone 13 (Refurbished)","brand":"Apple","model":"iPhone 13","category":"Smartphones","price":45999,"mrp":69999,"rating":4.7,"stock":8,"popularity":95,"image":"https://images.unsplash.com/photo-1661961112953-3f2e9c4c6e5e?q=80&w=1200&auto=format&fit=crop","tags":["featured","sale"],"specs":{"storage":"128 GB","ram":"4 GB","display":"6.1\" OLED","battery":"3227 mAh","camera":"12MP + 12MP","warranty":"12 months"}},
+    {"id":"p2","title":"Galaxy S21 (Renewed)","brand":"Samsung","model":"Galaxy S21","category":"Smartphones","price":34999,"mrp":54999,"rating":4.5,"stock":3,"popularity":89,"image":"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop","tags":["featured"],"specs":{"storage":"128 GB","ram":"8 GB","display":"6.2\" AMOLED","battery":"4000 mAh","camera":"12MP + 64MP + 12MP","warranty":"9 months"}},
+    {"id":"p3","title":"MacBook Air M1 (2020)","brand":"Apple","model":"MacBook Air M1","category":"Laptops","price":63999,"mrp":89999,"rating":4.8,"stock":5,"popularity":92,"image":"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop","tags":["featured"],"specs":{"storage":"256 GB SSD","ram":"8 GB","display":"13.3\" Retina","battery":"All day","camera":"720p","warranty":"12 months"}}
+  ]
+}

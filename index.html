@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelloBMG — Premium Refurbished Electronics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">Hello<span>BMG</span></a>
+      <form id="searchForm" class="search-bar" role="search">
+        <input id="searchInput" type="search" placeholder="Search products..." aria-label="Search products" />
+        <button type="submit">🔍</button>
+      </form>
+      <nav class="top-nav">
+        <a href="#categories">Categories</a>
+        <a href="#catalog">Catalog</a>
+        <a href="#compare">Compare</a>
+        <a href="#new">New Arrivals</a>
+        <button id="viewCartBtn" class="btn-outline">Cart (0)</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <h1>Premium Refurbished Electronics</h1>
+        <p>Warranty-backed devices at unbeatable value. Compare and choose confidently.</p>
+        <div class="hero-actions">
+          <a href="#catalog" class="btn-primary">Shop Now</a>
+          <a href="admin.html" class="btn-secondary">Admin</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-gradient"></div>
+        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop" alt="Phone" />
+      </div>
+    </div>
+  </section>
+
+  <section id="banner" class="banner">
+    <div class="container">
+      <div class="section-header">
+        <h2>Top Picks</h2>
+        <div class="slider-controls">
+          <button id="bannerPrev" class="btn-outline" aria-label="Previous">◀</button>
+          <button id="bannerNext" class="btn-outline" aria-label="Next">▶</button>
+        </div>
+      </div>
+      <div class="slider" role="region" aria-label="Featured products">
+        <div id="bannerTrack" class="slider-track"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="categories" class="categories">
+    <div class="container">
+      <h2>Shop by Category</h2>
+      <div class="category-grid">
+        <button class="chip" data-category="All">All</button>
+        <button class="chip" data-category="Smartphones">Smartphones</button>
+        <button class="chip" data-category="Laptops">Laptops</button>
+        <button class="chip" data-category="Tablets">Tablets</button>
+        <button class="chip" data-category="Accessories">Accessories</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="deals" class="featured">
+    <div class="container">
+      <div class="section-header">
+        <h2>Featured Deals</h2>
+        <a href="#catalog" class="link">View all →</a>
+      </div>
+      <div id="featuredGrid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <section id="new" class="featured">
+    <div class="container">
+      <div class="section-header">
+        <h2>New Arrivals</h2>
+        <a href="#catalog" class="link">Explore →</a>
+      </div>
+      <div id="newGrid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <section id="catalog" class="catalog">
+    <div class="container">
+      <div class="section-header">
+        <h2>Product Catalog</h2>
+        <div class="catalog-controls">
+          <label>Sort by
+            <select id="sortSelect">
+              <option value="popularity">Popularity</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating_desc">Rating</option>
+            </select>
+          </label>
+          <label class="toggle">
+            <input id="onlyInStock" type="checkbox" /> In Stock Only
+          </label>
+        </div>
+      </div>
+      <div id="catalogGrid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <section id="compare" class="comparison">
+    <div class="container">
+      <div class="section-header">
+        <h2>Compare Products</h2>
+        <button id="clearCompare" class="btn-outline">Clear</button>
+      </div>
+      <div id="compareBar" class="compare-bar"></div>
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr><th>Spec</th><th>Product A</th><th>Product B</th><th>Product C</th></tr>
+          </thead>
+          <tbody id="compareBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button id="closeCart">✕</button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
+      <button id="checkoutBtn" class="btn-primary">Checkout</button>
+    </div>
+  </aside>
+
+  <template id="productCardTpl">
+    <article class="product-card">
+      <div class="badge-group"></div>
+      <img class="thumb" alt="" loading="lazy" />
+      <h3 class="title"></h3>
+      <div class="price-row">
+        <span class="price"></span>
+        <span class="mrp"></span>
+      </div>
+      <div class="meta-row">
+        <span class="rating"></span>
+        <span class="stock"></span>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary add-compare">Compare</button>
+        <button class="btn-primary add-cart">Add to Cart</button>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

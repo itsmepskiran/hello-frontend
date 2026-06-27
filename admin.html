@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelloBMG Admin — Add Product</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --border:#e5e7eb; --muted:#6b7280; --primary:#0ea5e9; }
+    *{box-sizing:border-box} html,body{margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial;color:#0b1220}
+    .container{width:min(980px,94%);margin:20px auto 40px}
+    .card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fff}
+    form{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+    label{font-size:13px;color:#111827;font-weight:600;display:block;margin-bottom:6px}
+    input[type=text],input[type=number],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none}
+    textarea{min-height:90px;resize:vertical}
+    .full{grid-column:1 / -1}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .actions{display:flex;gap:10px;margin-top:4px}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--primary);color:#fff;border:none}
+    .banner{background:#f0f9ff;border:1px solid #bae6fd;padding:10px 12px;border-radius:10px;margin-bottom:12px}
+    .status{margin-top:8px;font-size:14px}
+    .success{color:#16a34a}.error{color:#dc2626}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Add Product</h1>
+    <div class="banner"><strong>Note:</strong> Sign in with a staff account to add products.</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <form id="authForm" class="full" style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:10px; align-items:end">
+        <div><label for="email">Email</label><input id="email" type="text" placeholder="admin@example.com"></div>
+        <div><label for="password">Password</label><input id="password" type="password" placeholder="••••••••"></div>
+        <div><button id="signInBtn" class="btn btn-primary" type="button">Sign In</button></div>
+        <div><button id="signOutBtn" class="btn" type="button">Sign Out</button></div>
+      </form>
+      <div class="muted" id="authStatus">Signed out</div>
+    </div>
+
+    <div class="card">
+      <form id="productForm">
+        <div class="full"><label for="title">Title</label><input id="title" type="text" placeholder="e.g. iPhone 13 (Refurbished, Excellent)" required></div>
+        <div><label for="brandSelect">Brand</label><select id="brandSelect"></select><div class="actions"><input id="brandNew" type="text" placeholder="Add new brand"><button id="addBrandBtn" class="btn" type="button">Add Brand</button></div></div>
+        <div><label for="categorySelect">Category</label><select id="categorySelect"></select><div class="actions"><input id="categoryNew" type="text" placeholder="Add new category"><button id="addCategoryBtn" class="btn" type="button">Add Category</button></div></div>
+        <div><label for="price">Price (INR)</label><input id="price" type="number" min="0" step="1" placeholder="45999" required></div>
+        <div><label for="mrp">MRP (INR)</label><input id="mrp" type="number" min="0" step="1" placeholder="69999"></div>
+        <div><label for="rating">Rating (1-5)</label><input id="rating" type="number" min="0" max="5" step="0.1" placeholder="4.7"></div>
+        <div><label for="stock">Stock</label><input id="stock" type="number" min="0" step="1" placeholder="10"></div>
+        <div><label for="stockStatus">Stock Status</label>
+          <select id="stockStatus">
+            <option value="in_stock">In Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+            <option value="preorder">Preorder</option>
+          </select>
+        </div>
+        <div class="full"><label for="tags">Tags (comma separated)</label><input id="tags" type="text" placeholder="featured, sale"></div>
+        <div class="row full">
+          <div><label for="storage">Storage</label><input id="storage" type="text" placeholder="128 GB"></div>
+          <div><label for="ram">RAM</label><input id="ram" type="text" placeholder="4 GB"></div>
+          <div><label for="display">Display</label><input id="display" type="text" placeholder="6.1&quot; OLED"></div>
+          <div><label for="battery">Battery</label><input id="battery" type="text" placeholder="3227 mAh"></div>
+          <div><label for="camera">Camera</label><input id="camera" type="text" placeholder="12MP + 12MP"></div>
+          <div><label for="warranty">Warranty</label><input id="warranty" type="text" placeholder="12 months"></div>
+        </div>
+        <div class="full"><label for="specsJson">Advanced Specs (JSON)</label><textarea id="specsJson" placeholder='{"model":"iPhone 13","storage":"128 GB"}'></textarea></div>
+        <div class="full"><label for="imageFile">Primary Image</label><input id="imageFile" type="file" accept="image/*" required></div>
+        <div class="full actions"><button class="btn" type="reset">Reset</button><button class="btn btn-primary" type="submit">Save Product</button></div>
+      </form>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h2 style="margin-top:0">Bulk Upload (.xlsx)</h2>
+      <p class="muted">Upload products using a spreadsheet. Required columns: <code>title, brand, category, price</code>. Optional: <code>mrp, rating, stock, tags, image_url, specs_json, storage, ram, display, battery, camera, warranty, stock_status</code>.</p>
+      <form id="bulkForm" class="full" style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
+        <div>
+          <label for="xlsxFile">XLSX File</label>
+          <input id="xlsxFile" type="file" accept=".xlsx" />
+        </div>
+        <div>
+          <button id="uploadXlsxBtn" type="button" class="btn btn-primary">Upload XLSX</button>
+        </div>
+      </form>
+      <div id="bulkStatus" class="status"></div>
+    </div>
+  </div>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
