@@ -8,22 +8,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="container header-inner">
       <a class="logo" href="#">Hello<span>BMG</span></a>
       <form id="searchForm" class="search-bar" role="search">
-        <input id="searchInput" type="search" placeholder="Search products..." aria-label="Search products" />
-        <button type="submit">🔍</button>
+        <input id="searchInput" type="search" placeholder="Search products…" aria-label="Search products" />
+        <button type="submit" aria-label="Search">🔍</button>
       </form>
       <nav class="top-nav">
         <a href="#categories">Categories</a>
         <a href="#catalog">Catalog</a>
         <a href="#compare">Compare</a>
         <a href="#new">New Arrivals</a>
-        <button id="viewCartBtn" class="btn-outline">Cart (0)</button>
+        <button id="viewCartBtn" class="btn-primary">🛒 Cart <span id="cartCount">0</span></button>
       </nav>
     </div>
   </header>
@@ -32,15 +31,14 @@
     <div class="container hero-inner">
       <div class="hero-copy">
         <h1>Premium Refurbished Electronics</h1>
-        <p>Warranty-backed devices at unbeatable value. Compare and choose confidently.</p>
+        <p>Warranty-backed devices at unbeatable prices. Compare, choose, and buy with confidence.</p>
         <div class="hero-actions">
-          <a href="#catalog" class="btn-primary">Shop Now</a>
-          <a href="admin.html" class="btn-secondary">Admin</a>
+          <a href="#catalog" class="btn-primary">Shop Now →</a>
+          <a href="#compare" class="btn-secondary">Compare Products</a>
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
-        <div class="hero-gradient"></div>
-        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop" alt="Phone" />
+        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop" alt="Refurbished phone" />
       </div>
     </div>
   </section>
@@ -64,11 +62,11 @@
     <div class="container">
       <h2>Shop by Category</h2>
       <div class="category-grid">
-        <button class="chip" data-category="All">All</button>
-        <button class="chip" data-category="Smartphones">Smartphones</button>
-        <button class="chip" data-category="Laptops">Laptops</button>
-        <button class="chip" data-category="Tablets">Tablets</button>
-        <button class="chip" data-category="Accessories">Accessories</button>
+        <button class="chip active" data-category="All">All</button>
+        <button class="chip" data-category="Smartphones">📱 Smartphones</button>
+        <button class="chip" data-category="Laptops">💻 Laptops</button>
+        <button class="chip" data-category="Tablets">📟 Tablets</button>
+        <button class="chip" data-category="Accessories">🎧 Accessories</button>
       </div>
     </div>
   </section>
@@ -101,9 +99,9 @@
           <label>Sort by
             <select id="sortSelect">
               <option value="popularity">Popularity</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating_desc">Rating</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
+              <option value="rating_desc">Top Rated</option>
             </select>
           </label>
           <label class="toggle">
@@ -119,13 +117,20 @@
     <div class="container">
       <div class="section-header">
         <h2>Compare Products</h2>
-        <button id="clearCompare" class="btn-outline">Clear</button>
+        <button id="clearCompare" class="btn-outline">Clear All</button>
       </div>
-      <div id="compareBar" class="compare-bar"></div>
+      <div id="compareBar" class="compare-bar">
+        <p>Select up to 3 products using the <strong>+ Compare</strong> button on any product card.</p>
+      </div>
       <div class="compare-table-wrap">
         <table class="compare-table">
-          <thead>
-            <tr><th>Spec</th><th>Product A</th><th>Product B</th><th>Product C</th></tr>
+          <thead id="compareHead">
+            <tr>
+              <th>Spec</th>
+              <th>Product 1</th>
+              <th>Product 2</th>
+              <th>Product 3</th>
+            </tr>
           </thead>
           <tbody id="compareBody"></tbody>
         </table>
@@ -133,35 +138,60 @@
     </div>
   </section>
 
+  <!-- Cart overlay -->
+  <div id="cartOverlay" class="cart-overlay"></div>
+
+  <!-- Cart drawer -->
   <aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
     <div class="cart-header">
       <h3>Your Cart</h3>
-      <button id="closeCart">✕</button>
+      <button id="closeCart" aria-label="Close cart">✕</button>
     </div>
     <div id="cartItems" class="cart-items"></div>
     <div class="cart-footer">
-      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
-      <button id="checkoutBtn" class="btn-primary">Checkout</button>
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span id="cartTotal" class="cart-total-amount">₹0</span>
+      </div>
+      <a id="checkoutBtn" href="checkout.html" class="btn-primary">Checkout →</a>
     </div>
   </aside>
 
+  <!-- Sticky compare footer -->
+  <div id="compareSticky" class="compare-sticky" aria-hidden="true">
+    <div class="container">
+      <div id="compareStickyItems" class="compare-sticky-items"></div>
+      <span id="compareStickyLabel" class="compare-sticky-label"></span>
+      <a href="#compare" id="compareNowBtn" class="btn-primary" style="font-size:.85rem;padding:8px 16px">Compare Now →</a>
+      <button id="clearCompareStickyBtn" class="btn-outline" style="border-color:rgba(255,255,255,.3);color:#fff;font-size:.8rem;padding:7px 12px">Clear</button>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Product card template -->
   <template id="productCardTpl">
     <article class="product-card">
       <div class="badge-group"></div>
-      <img class="thumb" alt="" loading="lazy" />
+      <div class="thumb-wrap">
+        <img class="thumb" alt="" loading="lazy" />
+      </div>
       <h3 class="title"></h3>
       <div class="price-row">
         <span class="price"></span>
         <span class="mrp"></span>
+        <span class="discount"></span>
       </div>
       <div class="meta-row">
         <span class="rating"></span>
-        <span class="stock"></span>
+        <span class="stock-badge"></span>
       </div>
       <div class="actions">
-        <button class="btn-secondary add-compare">Compare</button>
+        <button class="btn-secondary add-compare">+ Compare</button>
         <button class="btn-primary add-cart">Add to Cart</button>
       </div>
+      <button class="btn-buynow buy-now">Buy Now →</button>
     </article>
   </template>
 

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Failed — HelloBMG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Hello<span>BMG</span></a>
+    </div>
+  </header>
+
+  <main class="failed-page">
+    <div class="container">
+      <div class="failed-card">
+        <div class="failed-icon-wrap">
+          <div class="failed-x">✕</div>
+        </div>
+
+        <h1>Payment Failed</h1>
+        <p class="failed-subtitle" id="failedMsg">
+          Something went wrong with your payment. Don't worry — your cart is saved and you can try again.
+        </p>
+
+        <div class="failed-actions">
+          <a href="checkout.html" class="btn-primary">Try Again →</a>
+          <a href="index.html" class="btn-secondary">Back to Shop</a>
+        </div>
+
+        <p class="failed-help">
+          Need help? <a href="mailto:support@hellobmg.com">Contact Support</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const reason = new URLSearchParams(location.search).get('reason')
+    const msgs = {
+      verification: 'Your payment was processed but verification failed. Please contact support with your payment details.',
+      payment: 'Your payment was declined. Please check your card details or try a different payment method.',
+    }
+    const el = document.getElementById('failedMsg')
+    if (reason && msgs[reason]) el.textContent = msgs[reason]
+  </script>
+</body>
+</html>

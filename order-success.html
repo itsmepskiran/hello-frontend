@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — HelloBMG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    @keyframes popIn {
+      0%   { transform: scale(.5); opacity: 0 }
+      70%  { transform: scale(1.15) }
+      100% { transform: scale(1); opacity: 1 }
+    }
+    .success-icon-wrap { animation: popIn .5s cubic-bezier(.34,1.56,.64,1) forwards }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Hello<span>BMG</span></a>
+    </div>
+  </header>
+
+  <main class="success-page">
+    <div class="container">
+      <div class="success-card">
+        <div class="success-icon-wrap">
+          <div class="success-check">✓</div>
+        </div>
+
+        <h1>Order Confirmed!</h1>
+        <p class="success-subtitle">
+          Thank you for your purchase. We'll send a confirmation to your email shortly.
+        </p>
+
+        <div class="order-ref">
+          <span class="order-ref-label">Payment ID</span>
+          <span id="paymentId" class="order-ref-value">—</span>
+        </div>
+
+        <div id="successItems" class="success-items"></div>
+
+        <div class="success-total">
+          <span>Total Paid</span>
+          <span id="successTotal" class="success-total-amount">—</span>
+        </div>
+
+        <div class="success-actions">
+          <a href="index.html" class="btn-primary">Continue Shopping →</a>
+          <button onclick="window.print()" class="btn-secondary">🖨 Print Receipt</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function fmt(n) {
+      return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
+    }
+
+    const order = (() => {
+      try { return JSON.parse(localStorage.getItem('hbmg_last_order') || 'null') } catch { return null }
+    })()
+
+    if (order) {
+      document.getElementById('paymentId').textContent = order.paymentId || '—'
+      document.getElementById('successTotal').textContent = fmt(order.total || 0)
+
+      const list = document.getElementById('successItems')
+      if (order.items?.length) {
+        order.items.forEach(item => {
+          const row = document.createElement('div')
+          row.className = 'success-item-row'
+
+          const img = document.createElement('img')
+          img.src = item.image || ''
+          img.alt = item.title
+          img.onerror = () => { img.style.display = 'none' }
+
+          const name = document.createElement('span')
+          name.className = 'success-item-name'
+          name.textContent = item.title
+
+          const qty = document.createElement('span')
+          qty.className = 'success-item-qty'
+          qty.textContent = `× ${item.qty}`
+
+          const price = document.createElement('span')
+          price.className = 'success-item-price'
+          price.textContent = fmt(item.price * item.qty)
+
+          row.append(img, name, qty, price)
+          list.appendChild(row)
+        })
+      }
+    }
+  </script>
+</body>
+</html>
