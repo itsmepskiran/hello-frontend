@@ -278,7 +278,8 @@
   <div id="loginModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-brand">
-        <h2>HelloBMG Admin</h2>
+        <img src="images/bmglogo.png" alt="HelloBMG" style="height:80px;margin-bottom:10px">
+        <h2>Admin Portal</h2>
         <p>Sign in to manage products</p>
       </div>
       <form id="loginForm" class="modal-form" novalidate>
@@ -300,7 +301,7 @@
   <div id="mainPage">
 
     <div class="header">
-      <span class="header-brand">HelloBMG Admin</span>
+      <a href="#" style="display:flex;align-items:center"><img src="images/bmglogo.png" alt="HelloBMG" style="height:40px"></a>
       <span class="header-user" id="headerEmail"></span>
       <button id="viewStockBtn" class="btn btn-outline btn-sm">📦 View Stock</button>
       <button id="signOutBtn" class="btn-signout">Sign Out</button>
@@ -428,7 +429,10 @@
   <div id="stockModal" class="modal-overlay hidden">
     <div class="stock-modal-card">
       <div class="stock-modal-header">
-        <h3>📦 Current Stock</h3>
+        <div style="display:flex;align-items:center;gap:10px">
+          <img src="images/bmglogo.png" alt="HelloBMG" style="height:34px">
+          <h3>📦 Current Stock</h3>
+        </div>
         <div style="display:flex;align-items:center;gap:10px">
           <input id="stockSearch" type="search" class="stock-search" placeholder="Search products…">
           <button id="closeStockBtn" class="btn-icon" aria-label="Close">✕</button>
