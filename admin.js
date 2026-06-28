@@ -1,7 +1,7 @@
 // Local dev: wrangler dev runs on 8787.
 // After deploying, change this to your workers.dev URL:
 //   https://hellobmg-api.<your-subdomain>.workers.dev
-const BACKEND = localStorage.getItem('hbmg_backend') || 'http://localhost:8787'
+const BACKEND = localStorage.getItem('hbmg_backend') || 'https://hellobmg-api.skreenit.workers.dev'
 
 // ── Token helpers ──────────────────────────────────────────────────────────────
 function getToken()  { return localStorage.getItem('hbmg_token') || '' }
@@ -138,7 +138,7 @@ async function loadBrandsCategories() {
     els.categorySelect.innerHTML = (categories || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('')
     setStatus('')
   } catch (e) {
-    setStatus('Could not load brands/categories — is the backend running on port 2025?', 'error')
+    setStatus('Could not load brands/categories — is the Worker running?', 'error')
   }
 }
 
