@@ -287,6 +287,132 @@ async function handleBulkUpload() {
   }
 }
 
+// ── Stock modal ────────────────────────────────────────────────────────────────
+let _stockData = []
+
+async function openStockModal() {
+  document.getElementById('stockModal').classList.remove('hidden')
+  document.getElementById('stockSearch').value = ''
+  await loadStock()
+}
+
+function closeStockModal() {
+  document.getElementById('stockModal').classList.add('hidden')
+}
+
+async function loadStock() {
+  const wrap = document.getElementById('stockTableWrap')
+  const summary = document.getElementById('stockSummary')
+  wrap.innerHTML = '<p class="stock-loading">Loading…</p>'
+  summary.innerHTML = ''
+
+  try {
+    const res = await fetch(`${BACKEND}/admin/stock`, { headers: authHeaders() })
+    if (!res.ok) {
+      if (res.status === 401) { clearToken(); showModal(); return }
+      throw new Error('Failed to load stock')
+    }
+    _stockData = await res.json()
+    renderStock(_stockData)
+  } catch (e) {
+    wrap.innerHTML = `<p class="stock-loading" style="color:var(--error)">${e.message}</p>`
+  }
+}
+
+function renderStock(items) {
+  const wrap    = document.getElementById('stockTableWrap')
+  const summary = document.getElementById('stockSummary')
+
+  const total  = items.length
+  const out    = items.filter(p => Number(p.stock) === 0).length
+  const low    = items.filter(p => Number(p.stock) > 0 && Number(p.stock) < 5).length
+  const ok     = total - out - low
+
+  summary.innerHTML = `
+    <span class="summary-chip total">${total} Products</span>
+    <span class="summary-chip ok">${ok} In Stock</span>
+    <span class="summary-chip low">${low} Low (&lt;5)</span>
+    <span class="summary-chip out">${out} Out of Stock</span>
+  `
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="stock-loading">No products found.</p>'
+    return
+  }
+
+  const rows = items.map(p => {
+    const qty      = Number(p.stock)
+    const qtyClass = qty === 0 ? 'out' : qty < 5 ? 'low' : 'ok'
+    const price    = Number(p.price).toLocaleString('en-IN')
+    const mrp      = p.mrp ? Number(p.mrp).toLocaleString('en-IN') : '—'
+    const rowClass = p.is_active ? '' : 'st-inactive'
+    const badge    = p.stock_status === 'in_stock' ? 'In Stock'
+                   : p.stock_status === 'out_of_stock' ? 'Out of Stock'
+                   : 'Preorder'
+    return `<tr class="${rowClass}" data-id="${p.id}">
+      <td class="st-title" title="${p.title}">${p.title}</td>
+      <td class="st-muted">${p.brand_name || '—'}</td>
+      <td class="st-muted">${p.category_name || '—'}</td>
+      <td>₹${price}</td>
+      <td>₹${mrp}</td>
+      <td>
+        <div class="inline-qty">
+          <input type="number" min="0" step="1" value="${qty}" data-orig="${qty}">
+          <button class="btn btn-primary btn-save inline-save" data-id="${p.id}" data-status="${p.stock_status}">Save</button>
+        </div>
+      </td>
+      <td><span class="st-badge ${p.stock_status}">${badge}</span></td>
+      <td>${p.is_active ? '✅ Active' : '❌ Inactive'}</td>
+    </tr>`
+  }).join('')
+
+  wrap.innerHTML = `
+    <table id="stockTable">
+      <thead><tr>
+        <th>Product</th><th>Brand</th><th>Category</th>
+        <th>Price</th><th>MRP</th><th>Stock Qty</th>
+        <th>Status</th><th>Active</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`
+
+  // bind save buttons
+  wrap.querySelectorAll('.inline-save').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id      = this.dataset.id
+      const input   = this.closest('.inline-qty').querySelector('input')
+      const newQty  = Number(input.value)
+      const status  = newQty > 0 ? 'in_stock' : 'out_of_stock'
+      this.textContent = '…'
+      this.disabled = true
+      try {
+        const res = await fetch(`${BACKEND}/admin/products/${id}/stock`, {
+          method:  'PATCH',
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          body:    JSON.stringify({ stock: newQty, stock_status: status }),
+        })
+        if (!res.ok) throw new Error('Update failed')
+        input.dataset.orig = newQty
+        this.textContent = '✓'
+        setTimeout(() => { this.textContent = 'Save'; this.disabled = false }, 1200)
+      } catch (e) {
+        this.textContent = 'Err'
+        setTimeout(() => { this.textContent = 'Save'; this.disabled = false }, 1500)
+      }
+    })
+  })
+}
+
+function filterStock(q) {
+  if (!q) { renderStock(_stockData); return }
+  const lower = q.toLowerCase()
+  renderStock(_stockData.filter(p =>
+    String(p.title || '').toLowerCase().includes(lower) ||
+    String(p.brand_name || '').toLowerCase().includes(lower) ||
+    String(p.category_name || '').toLowerCase().includes(lower)
+  ))
+}
+
 function downloadSampleCsv() {
   const headers = ['title','brand','category','price','mrp','rating','stock','tags','image_url','specs_json','storage','ram','display','battery','camera','warranty','stock_status']
   const sample  = ['iPhone 13 (Refurbished)','Apple','Smartphones','45999','69999','4.7','10','featured,sale','','','128 GB','4 GB','6.1" OLED','3227 mAh','12MP + 12MP','12 months','in_stock']
@@ -307,6 +433,13 @@ function bind() {
   els.form.addEventListener('submit', handleSubmit)
   els.uploadXlsxBtn?.addEventListener('click', handleBulkUpload)
   els.sampleBtn?.addEventListener('click', downloadSampleCsv)
+
+  document.getElementById('viewStockBtn').addEventListener('click', openStockModal)
+  document.getElementById('closeStockBtn').addEventListener('click', closeStockModal)
+  document.getElementById('stockModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeStockModal()
+  })
+  document.getElementById('stockSearch').addEventListener('input', e => filterStock(e.target.value))
 }
 
 async function init() {
