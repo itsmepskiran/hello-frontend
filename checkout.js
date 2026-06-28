@@ -1,4 +1,4 @@
-const BACKEND_URL = localStorage.getItem('hbmg_backend') || 'http://localhost:8010'
+const BACKEND_URL = localStorage.getItem('hbmg_backend') || 'https://hellobmg-api.skreenit.workers.dev'
 
 function fmt(n) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)

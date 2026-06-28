@@ -1,5 +1,5 @@
 const FALLBACK_IMG  = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1200&auto=format&fit=crop'
-const BACKEND_URL   = localStorage.getItem('hbmg_backend') || 'http://localhost:8010'
+const BACKEND_URL   = localStorage.getItem('hbmg_backend') || 'https://hellobmg-api.skreenit.workers.dev'
 
 const state = {
   products: [],
