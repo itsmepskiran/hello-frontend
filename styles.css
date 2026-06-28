@@ -76,8 +76,8 @@ img{max-width:100%;display:block}
   border-bottom:1px solid var(--border);z-index:50;
 }
 .header-inner{display:flex;align-items:center;gap:16px;padding:12px 0}
-.logo{font-weight:800;font-size:22px;color:#f0f0f0;text-decoration:none}
-.logo span{color:var(--primary)}
+.logo{text-decoration:none;display:flex;align-items:center;flex-shrink:0}
+.logo img{height:44px;width:auto;display:block}
 
 .search-bar{
   display:flex;gap:8px;align-items:center;
@@ -101,6 +101,12 @@ img{max-width:100%;display:block}
   padding:6px 10px;border-radius:8px;transition:color .15s,background .15s;
 }
 .top-nav a:hover{color:var(--primary);background:var(--primary-light)}
+
+/* === Promo Banner === */
+.promo-banner{padding:24px 0 8px}
+.promo-banner a{display:block;border-radius:var(--radius-lg);overflow:hidden;transition:transform .2s,opacity .2s}
+.promo-banner a:hover{transform:scale(.995);opacity:.93}
+.promo-banner img{width:100%;height:auto;display:block;border-radius:var(--radius-lg)}
 
 /* === Hero === */
 .hero{
