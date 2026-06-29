@@ -115,6 +115,10 @@ function buildCard(p) {
   tpl.querySelector('.add-cart').addEventListener('click', () => addToCart(p.id))
   tpl.querySelector('.buy-now').addEventListener('click', () => buyNow(p.id))
 
+  root.addEventListener('click', e => {
+    if (!e.target.closest('button')) openProductModal(p.id)
+  })
+
   return tpl
 }
 
@@ -435,6 +439,86 @@ function buyNow(id) {
   window.location.href = 'checkout.html'
 }
 
+// ── Product detail modal ───────────────────────────────────────────────────────
+function openProductModal(id) {
+  const p = state.products.find(x => x.id === id)
+  if (!p) return
+
+  qs('#modalImg').src     = p.image || FALLBACK_IMG
+  qs('#modalImg').alt     = p.title
+  qs('#modalBrand').textContent  = [p.brand, p.category].filter(Boolean).join(' · ')
+  qs('#modalTitle').textContent  = p.title
+  qs('#modalPrice').textContent  = formatCurrency(p.price)
+
+  const mrpEl = qs('#modalMrp')
+  const discEl = qs('#modalDiscount')
+  if (p.mrp && p.mrp > p.price) {
+    mrpEl.textContent  = formatCurrency(p.mrp)
+    discEl.textContent = `${Math.round((1 - p.price / p.mrp) * 100)}% off`
+  } else {
+    mrpEl.textContent = ''
+    discEl.textContent = ''
+  }
+
+  qs('#modalRating').textContent = `★ ${Number(p.rating || 0).toFixed(1)}`
+
+  const stockEl = qs('#modalStock')
+  if (p.stock === 0)       { stockEl.textContent = 'Out of stock';         stockEl.className = 'pm-stock-out' }
+  else if (p.stock <= 3)   { stockEl.textContent = `Only ${p.stock} left`; stockEl.className = 'pm-stock-low' }
+  else                     { stockEl.textContent = 'In stock';             stockEl.className = 'pm-stock-in'  }
+
+  // Specs
+  const specsEl = qs('#modalSpecs')
+  specsEl.innerHTML = ''
+  const specMap = [
+    ['Storage', p.specs?.storage],
+    ['RAM', p.specs?.ram],
+    ['Display', p.specs?.display],
+    ['Battery', p.specs?.battery],
+    ['Camera', p.specs?.camera],
+    ['Warranty', p.specs?.warranty],
+  ]
+  // Add any extra specs not in the standard set
+  const standardKeys = new Set(['storage','ram','display','battery','camera','warranty','model'])
+  Object.entries(p.specs || {}).forEach(([k, v]) => {
+    if (!standardKeys.has(k) && v) specMap.push([k.charAt(0).toUpperCase() + k.slice(1), v])
+  })
+  specMap.filter(([, v]) => v).forEach(([label, value]) => {
+    const row = document.createElement('div'); row.className = 'spec-row'
+    const lbl = document.createElement('span'); lbl.className = 'spec-label'; lbl.textContent = label
+    const val = document.createElement('span'); val.className = 'spec-value'; val.textContent = value
+    row.append(lbl, val); specsEl.appendChild(row)
+  })
+  if (!specsEl.children.length) specsEl.style.display = 'none'
+  else specsEl.style.display = ''
+
+  // Tags
+  const tagsEl = qs('#modalTags')
+  tagsEl.innerHTML = ''
+  ;(p.tags || []).forEach(tag => {
+    const t = document.createElement('span')
+    t.className = `pm-tag ${tag.toLowerCase()}`
+    t.textContent = tag.charAt(0).toUpperCase() + tag.slice(1)
+    tagsEl.appendChild(t)
+  })
+
+  // Wire action buttons
+  qs('#modalAddCart').onclick = () => { addToCart(p.id); closeProductModal() }
+  qs('#modalBuyNow').onclick  = () => buyNow(p.id)
+
+  const overlay = qs('#productModal')
+  overlay.classList.remove('hidden')
+  overlay.setAttribute('aria-hidden', 'false')
+  document.body.style.overflow = 'hidden'
+}
+
+function closeProductModal() {
+  const overlay = qs('#productModal')
+  overlay.classList.add('hidden')
+  overlay.setAttribute('aria-hidden', 'true')
+  document.body.style.overflow = ''
+}
+
 // ── Bind events ────────────────────────────────────────────────────────────────
 function bind() {
   qs('#viewCartBtn').addEventListener('click', openCart)
@@ -465,6 +549,14 @@ function bind() {
   })
   qs('#clearCompareStickyBtn')?.addEventListener('click', () => {
     state.compare = []; refreshCompareButtons(); renderCompareBar(); renderCompareTable(); renderStickyCompare()
+  })
+
+  qs('#closeProductModal').addEventListener('click', closeProductModal)
+  qs('#productModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeProductModal()
+  })
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeProductModal()
   })
 }
 

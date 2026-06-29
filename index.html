@@ -178,6 +178,37 @@
   <!-- Toast container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
+  <!-- Product detail modal -->
+  <div id="productModal" class="product-modal-overlay hidden" aria-hidden="true">
+    <div class="product-modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="product-modal-close" id="closeProductModal" aria-label="Close">✕</button>
+      <div class="product-modal-body">
+        <div class="product-modal-img-wrap">
+          <img id="modalImg" src="" alt="" loading="lazy" />
+        </div>
+        <div class="product-modal-info">
+          <div class="product-modal-brand" id="modalBrand"></div>
+          <h2 class="product-modal-title" id="modalTitle"></h2>
+          <div class="product-modal-price-row">
+            <span class="product-modal-price" id="modalPrice"></span>
+            <span class="product-modal-mrp" id="modalMrp"></span>
+            <span class="product-modal-discount" id="modalDiscount"></span>
+          </div>
+          <div class="product-modal-meta">
+            <span class="product-modal-rating" id="modalRating"></span>
+            <span id="modalStock"></span>
+          </div>
+          <div class="product-modal-specs" id="modalSpecs"></div>
+          <div class="product-modal-tags" id="modalTags"></div>
+          <div class="product-modal-actions">
+            <button class="btn-primary" id="modalAddCart">Add to Cart</button>
+            <button class="btn-buynow" id="modalBuyNow">Buy Now →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Product card template -->
   <template id="productCardTpl">
     <article class="product-card">
