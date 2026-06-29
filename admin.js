@@ -22,34 +22,39 @@ const signOutBtn = document.getElementById('signOutBtn')
 const headerEmail= document.getElementById('headerEmail')
 
 const els = {
-  form:           document.getElementById('productForm'),
-  status:         document.getElementById('status'),
-  title:          document.getElementById('title'),
-  brandSelect:    document.getElementById('brandSelect'),
-  brandNew:       document.getElementById('brandNew'),
-  addBrandBtn:    document.getElementById('addBrandBtn'),
-  categorySelect: document.getElementById('categorySelect'),
-  categoryNew:    document.getElementById('categoryNew'),
-  addCategoryBtn: document.getElementById('addCategoryBtn'),
-  price:          document.getElementById('price'),
-  mrp:            document.getElementById('mrp'),
-  rating:         document.getElementById('rating'),
-  stock:          document.getElementById('stock'),
-  stockStatus:    document.getElementById('stockStatus'),
-  tags:           document.getElementById('tags'),
-  storage:        document.getElementById('storage'),
-  ram:            document.getElementById('ram'),
-  display:        document.getElementById('display'),
-  battery:        document.getElementById('battery'),
-  camera:         document.getElementById('camera'),
-  warranty:       document.getElementById('warranty'),
-  specsJson:      document.getElementById('specsJson'),
-  imageFile:      document.getElementById('imageFile'),
-  bulkForm:       document.getElementById('bulkForm'),
-  xlsxFile:       document.getElementById('xlsxFile'),
-  uploadXlsxBtn:  document.getElementById('uploadXlsxBtn'),
-  bulkStatus:     document.getElementById('bulkStatus'),
-  sampleBtn:      document.getElementById('sampleBtn'),
+  form:             document.getElementById('productForm'),
+  status:           document.getElementById('status'),
+  title:            document.getElementById('title'),
+  brandSelect:      document.getElementById('brandSelect'),
+  brandNew:         document.getElementById('brandNew'),
+  addBrandBtn:      document.getElementById('addBrandBtn'),
+  categorySelect:   document.getElementById('categorySelect'),
+  categoryNew:      document.getElementById('categoryNew'),
+  addCategoryBtn:   document.getElementById('addCategoryBtn'),
+  price:            document.getElementById('price'),
+  mrp:              document.getElementById('mrp'),
+  rating:           document.getElementById('rating'),
+  stock:            document.getElementById('stock'),
+  stockStatus:      document.getElementById('stockStatus'),
+  tags:             document.getElementById('tags'),
+  storage:          document.getElementById('storage'),
+  ram:              document.getElementById('ram'),
+  display:          document.getElementById('display'),
+  battery:          document.getElementById('battery'),
+  camera:           document.getElementById('camera'),
+  warranty:         document.getElementById('warranty'),
+  specsJson:        document.getElementById('specsJson'),
+  imageFile:        document.getElementById('imageFile'),
+  bulkForm:         document.getElementById('bulkForm'),
+  xlsxFile:         document.getElementById('xlsxFile'),
+  uploadXlsxBtn:    document.getElementById('uploadXlsxBtn'),
+  bulkStatus:       document.getElementById('bulkStatus'),
+  sampleBtn:        document.getElementById('sampleBtn'),
+  imgProductSearch: document.getElementById('imgProductSearch'),
+  imgProductSelect: document.getElementById('imgProductSelect'),
+  imgFile:          document.getElementById('imgFile'),
+  uploadImgBtn:     document.getElementById('uploadImgBtn'),
+  imgStatus:        document.getElementById('imgStatus'),
 }
 
 // ── Modal show / hide ──────────────────────────────────────────────────────────
@@ -104,6 +109,7 @@ async function signIn(e) {
     localStorage.setItem('hbmg_email', data.email)
     showMainPage(data.email)
     await loadBrandsCategories()
+    await loadProductsForImageUpload()
   } catch (err) {
     loginError.textContent = err.message
   } finally {
@@ -287,6 +293,68 @@ async function handleBulkUpload() {
   }
 }
 
+// ── Image upload for existing products ────────────────────────────────────────
+let _allProducts = []
+
+async function loadProductsForImageUpload() {
+  try {
+    const res = await fetch(`${BACKEND}/admin/stock`, { headers: authHeaders() })
+    if (!res.ok) return
+    _allProducts = await res.json()
+    renderImgProductSelect('')
+  } catch { /* silent */ }
+}
+
+function renderImgProductSelect(filter) {
+  const lower = filter.toLowerCase()
+  const filtered = filter
+    ? _allProducts.filter(p =>
+        String(p.title || '').toLowerCase().includes(lower) ||
+        String(p.brand_name || '').toLowerCase().includes(lower)
+      )
+    : _allProducts
+  els.imgProductSelect.innerHTML =
+    '<option value="">— select a product —</option>' +
+    filtered.map(p =>
+      `<option value="${p.id}">[${p.brand_name || '—'}] ${p.title}</option>`
+    ).join('')
+}
+
+function setImgStatus(msg, type = '') {
+  els.imgStatus.textContent = msg
+  els.imgStatus.className   = 'status ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '')
+}
+
+async function handleImageUpload() {
+  const productId = els.imgProductSelect.value
+  const file      = els.imgFile.files?.[0]
+  if (!productId) { setImgStatus('Please select a product', 'error'); return }
+  if (!file)      { setImgStatus('Please select an image file', 'error'); return }
+
+  setImgStatus('Uploading…')
+  els.uploadImgBtn.disabled = true
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('is_primary', 'true')
+    const res = await fetch(`${BACKEND}/admin/products/${productId}/images`, {
+      method: 'POST', headers: authHeaders(), body: fd,
+    })
+    if (!res.ok) {
+      if (res.status === 401) { clearToken(); showModal(); return }
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail || 'Upload failed')
+    }
+    setImgStatus('Image uploaded successfully!', 'success')
+    els.imgFile.value = ''
+    els.imgProductSelect.value = ''
+  } catch (e) {
+    setImgStatus('Failed: ' + e.message, 'error')
+  } finally {
+    els.uploadImgBtn.disabled = false
+  }
+}
+
 // ── Stock modal ────────────────────────────────────────────────────────────────
 let _stockData = []
 
@@ -434,6 +502,9 @@ function bind() {
   els.uploadXlsxBtn?.addEventListener('click', handleBulkUpload)
   els.sampleBtn?.addEventListener('click', downloadSampleCsv)
 
+  els.imgProductSearch.addEventListener('input', e => renderImgProductSelect(e.target.value))
+  els.uploadImgBtn.addEventListener('click', handleImageUpload)
+
   document.getElementById('viewStockBtn').addEventListener('click', openStockModal)
   document.getElementById('closeStockBtn').addEventListener('click', closeStockModal)
   document.getElementById('stockModal').addEventListener('click', e => {
@@ -452,6 +523,7 @@ async function init() {
       const email = localStorage.getItem('hbmg_email') || 'admin'
       showMainPage(email)
       await loadBrandsCategories()
+      await loadProductsForImageUpload()
       return
     }
     clearToken()

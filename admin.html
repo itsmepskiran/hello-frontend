@@ -396,6 +396,31 @@
         <div id="status" class="status"></div>
       </div>
 
+      <!-- ── Upload Image to Existing Product ── -->
+      <div class="card">
+        <p class="card-title">🖼️ Upload Image to Existing Product</p>
+        <div class="product-grid">
+          <div class="full">
+            <label for="imgProductSearch">Search Product</label>
+            <input id="imgProductSearch" type="search" placeholder="Type to filter products…">
+          </div>
+          <div class="full">
+            <label for="imgProductSelect">Select Product *</label>
+            <select id="imgProductSelect">
+              <option value="">— select a product —</option>
+            </select>
+          </div>
+          <div class="full">
+            <label for="imgFile">Image File *</label>
+            <input id="imgFile" type="file" accept="image/*">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="uploadImgBtn" class="btn btn-primary" type="button">Upload Image</button>
+        </div>
+        <div id="imgStatus" class="status"></div>
+      </div>
+
       <!-- ── Bulk Upload ── -->
       <div class="card">
         <p class="card-title">📊 Bulk Upload (.xlsx / .csv)</p>
